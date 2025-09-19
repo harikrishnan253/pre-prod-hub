@@ -870,3 +870,4 @@ jinja2.exceptions.TemplateNotFound: 404.html
 2025-09-19 14:32:50,989 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in C:\Users\muraliba\PycharmProjects\Copyediting System\test.py:1826]
 2025-09-19 14:33:02,636 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in C:\Users\muraliba\PycharmProjects\Copyediting System\test.py:1826]
 2025-09-19 14:33:04,728 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in C:\Users\muraliba\PycharmProjects\Copyediting System\test.py:1826]
+2025-09-19 15:12:29,176 INFO: Application initialized with route-specific macro processing [in C:\Users\muraliba\Documents\Final\my-project\app.py:1880]
