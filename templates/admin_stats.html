@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Statistics - Admin Panel{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* keep your existing styles ... */
+
+    .role-stats {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        margin-bottom: 30px;
+        animation: fadeIn 0.8s ease-out forwards;
+    }
+
+    .role-stats h3 {
+        color: var(--black);
+        font-size: 22px;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 3px solid;
+        border-image: linear-gradient(45deg, var(--rainbow-1), var(--rainbow-4)) 1;
+    }
+
+    .role-stats table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .role-stats th, .role-stats td {
+        padding: 12px;
+        text-align: left;
+    }
+
+    .role-stats th {
+        background: linear-gradient(45deg, var(--rainbow-1), var(--rainbow-3));
+        color: white;
+    }
+
+    .role-stats tr:hover {
+        background-color: rgba(255, 255, 255, 0.6);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h2>System Statistics <span class="admin-badge"><i class="fas fa-chart-bar"></i> ADMIN</span></h2>
+    <a href="{{ url_for('admin_files') }}" class="btn-rainbow">
+        <i class="fas fa-file-alt"></i> View Files
+    </a>
+</div>
+
+<div class="dashboard-stats">
+    <div class="stat-card">
+        <h3>Total Users</h3>
+        <div class="stat-value">{{ total_users }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Total Files</h3>
+        <div class="stat-value">{{ total_files }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Total Validations</h3>
+        <div class="stat-value">{{ total_validations }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Total Macro Runs</h3>
+        <div class="stat-value">{{ total_macro }}</div>
+    </div>
+</div>
+
+<div class="role-stats">
+    <h3>User Roles Breakdown</h3>
+    {% if role_stats %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Role</th>
+                    <th>User Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for role, count in role_stats.items() %}
+                <tr>
+                    <td>{{ role }}</td>
+                    <td>{{ count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No role statistics available.</p>
+    {% endif %}
+</div>
+
+<div class="recent-files">
+    <h3>Recent Activity</h3>
+    {% if recent_files %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Filename</th>
+                    <th>User</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in recent_files %}
+                <tr>
+                    <td>{{ file.upload_date }}</td>
+                    <td>{{ file.original_filename }}</td>
+                    <td>{{ file.username }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No recent activity.</p>
+    {% endif %}
+</div>
+
+<div class="user-activity">
+    <h3>User Activity</h3>
+    {% if user_stats %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Files Uploaded</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in user_stats %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.file_count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No user activity.</p>
+    {% endif %}
+</div>
+{% endblock %}

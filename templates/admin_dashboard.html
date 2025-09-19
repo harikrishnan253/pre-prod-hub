@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - S4carlisle{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="content-card text-center mb-3">
+        <h1 style="font-size: 2.5rem; margin-bottom: 1rem; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            Admin Dashboard
+        </h1>
+        <p class="text-muted">System overview and management</p>
+    </div>
+
+    <div class="content-card mb-3">
+        <h2 class="card-title mb-3">System Statistics</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+
+            <div class="card text-center">
+                <i class="fas fa-users" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                <h3>{{ admin_stats.total_users or 0 }}</h3>
+                <p>Total Users</p>
+            </div>
+
+            <div class="card text-center">
+                <i class="fas fa-file-alt" style="font-size: 2.5rem; color: var(--info); margin-bottom: 1rem;"></i>
+                <h3>{{ admin_stats.total_files or 0 }}</h3>
+                <p>Total Files</p>
+            </div>
+
+            <div class="card text-center">
+                <i class="fas fa-check-circle" style="font-size: 2.5rem; color: var(--success); margin-bottom: 1rem;"></i>
+                <h3>{{ admin_stats.total_validations or 0 }}</h3>
+                <p>Total Validations</p>
+            </div>
+
+            <div class="card text-center">
+                <i class="fas fa-cogs" style="font-size: 2.5rem; color: var(--warning); margin-bottom: 1rem;"></i>
+                <h3>{{ admin_stats.total_macro or 0 }}</h3>
+                <p>Editing Processes</p>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="content-card">
+        <h2 class="card-title mb-3">Admin Actions</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+            <a href="{{ url_for('admin_users') }}" class="card text-center" style="text-decoration: none; color: inherit; transition: var(--transition);">
+                <i class="fas fa-users-cog" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                <h3>Manage Users</h3>
+                <p>View and manage system users</p>
+            </a>
+            <a href="{{ url_for('admin_files') }}" class="card text-center" style="text-decoration: none; color: inherit; transition: var(--transition);">
+                <i class="fas fa-file-alt" style="font-size: 3rem; color: var(--info); margin-bottom: 1rem;"></i>
+                <h3>Manage Files</h3>
+                <p>View and manage uploaded files</p>
+            </a>
+            <a href="{{ url_for('admin_stats') }}" class="card text-center" style="text-decoration: none; color: inherit; transition: var(--transition);">
+                <i class="fas fa-chart-bar" style="font-size: 3rem; color: var(--success); margin-bottom: 1rem;"></i>
+                <h3>View Statistics</h3>
+                <p>System usage statistics</p>
+            </a>
+            <a href="{{ url_for('file_history') }}" class="card text-center" style="text-decoration: none; color: inherit; transition: var(--transition);">
+                <i class="fas fa-history" style="font-size: 3rem; color: var(--warning); margin-bottom: 1rem;"></i>
+                <h3>Editing History</h3>
+                <p>View Editing processing history</p>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+{% if role_stats %}
+    const ctx = document.getElementById('roleChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ role_stats.keys()|list|tojson }},
+            datasets: [{
+                data: {{ role_stats.values()|list|tojson }},
+                backgroundColor: [
+                    '#FF6384', '#36A2EB', '#FFCE56',
+                    '#4BC0C0', '#9966FF', '#FF9F40'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+{% endif %}
+</script>
+{% endblock %}
+
