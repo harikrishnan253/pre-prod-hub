@@ -10,92 +10,97 @@
             <h1 class="h3 mb-1">User Management</h1>
             <p class="text-muted">Manage system users, roles, and permissions</p>
         </div>
-        <a href="{{ url_for('admin_create_user') }}" class="btn btn-primary">
+        <a href="{{ url_for('admin.admin_create_user') }}" class="btn btn-primary">
             <i class="fas fa-user-plus"></i> Create New User
         </a>
     </div>
 
     {% if users %}
-        <div class="table-responsive shadow-sm rounded">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Username</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Joined</th>
-                        <th style="width: 320px;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in users %}
-                    <tr>
-                        <td>{{ user.username }}</td>
-                        <td>{{ user.email if user.email else 'N/A' }}</td>
+    <div class="table-responsive shadow-sm rounded">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Joined</th>
+                    <th style="width: 320px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email if user.email else 'N/A' }}</td>
 
-                        <!-- Change Role -->
-                        <td>
-                            <form action="{{ url_for('admin_change_role', user_id=user.id) }}" method="POST" class="d-flex align-items-center gap-2">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <select name="role" class="form-select form-select-sm w-auto">
-                                    <option value="USER" {% if user.role == 'USER' %}selected{% endif %}>User</option>
-                                    <option value="PPD" {% if user.role == 'PPD' %}selected{% endif %}>PPD</option>
-                                    <option value="COPYEDIT" {% if user.role == 'COPYEDIT' %}selected{% endif %}>Copyedit</option>
-                                    <option value="PM" {% if user.role == 'PM' %}selected{% endif %}>PM</option>
-                                    <option value="ADMIN" {% if user.role == 'ADMIN' %}selected{% endif %}>Administrator</option>
-                                </select>
-                                <button type="submit" class="btn btn-sm btn-primary">Change</button>
-                            </form>
-                        </td>
+                    <!-- Change Role -->
+                    <td>
+                        <form action="{{ url_for('admin.admin_change_role', user_id=user.id) }}" method="POST"
+                            class="d-flex align-items-center gap-2">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <select name="role" class="form-select form-select-sm w-auto">
+                                <option value="USER" {% if user.role=='USER' %}selected{% endif %}>User</option>
+                                <option value="PPD" {% if user.role=='PPD' %}selected{% endif %}>PPD</option>
+                                <option value="COPYEDIT" {% if user.role=='COPYEDIT' %}selected{% endif %}>Copyedit
+                                </option>
+                                <option value="PM" {% if user.role=='PM' %}selected{% endif %}>PM</option>
+                                <option value="ADMIN" {% if user.role=='ADMIN' %}selected{% endif %}>Administrator
+                                </option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-primary">Change</button>
+                        </form>
+                    </td>
 
-                        <td>{{ user.created_at }}</td>
-                        <td class="text-nowrap">
-                            <!-- Toggle Admin -->
-                            <form action="{{ url_for('admin_toggle_admin', user_id=user.id) }}" method="POST" class="d-inline">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                {% if user.is_admin %}
-                                    <button type="submit" class="btn btn-warning btn-sm">
-                                        <i class="fas fa-user-minus"></i> Remove Admin
-                                    </button>
-                                {% else %}
-                                    <button type="submit" class="btn btn-success btn-sm">
-                                        <i class="fas fa-user-shield"></i> Make Admin
-                                    </button>
-                                {% endif %}
-                            </form>
+                    <td>{{ user.created_at }}</td>
+                    <td class="text-nowrap">
+                        <!-- Toggle Admin -->
+                        <form action="{{ url_for('admin.admin_toggle_admin', user_id=user.id) }}" method="POST"
+                            class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            {% if user.is_admin %}
+                            <button type="submit" class="btn btn-warning btn-sm">
+                                <i class="fas fa-user-minus"></i> Remove Admin
+                            </button>
+                            {% else %}
+                            <button type="submit" class="btn btn-success btn-sm">
+                                <i class="fas fa-user-shield"></i> Make Admin
+                            </button>
+                            {% endif %}
+                        </form>
 
-                            <!-- Change Password -->
-                            <a href="{{ url_for('admin_change_password', user_id=user.id) }}" class="btn btn-info btn-sm">
-                                <i class="fas fa-key"></i> Change Password
-                            </a>
+                        <!-- Change Password -->
+                        <a href="{{ url_for('admin.admin_change_password', user_id=user.id) }}"
+                            class="btn btn-info btn-sm">
+                            <i class="fas fa-key"></i> Change Password
+                        </a>
 
-                            <!-- Delete User -->
-                            <form action="{{ url_for('admin_delete_user', user_id=user.id) }}" method="post" class="d-inline"
-                                  onsubmit="return confirmDeleteUser('{{ user.username|escape }}');">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-danger btn-sm"
-                                        {% if user.id == session.get('user_id') %}disabled title="Cannot delete yourself"{% endif %}>
-                                    <i class="fas fa-user-times"></i> Delete
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                        <!-- Delete User -->
+                        <form action="{{ url_for('admin.admin_delete_user', user_id=user.id) }}" method="post"
+                            class="d-inline" onsubmit="return confirmDeleteUser('{{ user.username|escape }}');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-danger btn-sm" {% if user.id==session.get('user_id')
+                                %}disabled title="Cannot delete yourself" {% endif %}>
+                                <i class="fas fa-user-times"></i> Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
-        <div class="alert alert-secondary text-center">
-            <i class="fas fa-info-circle"></i> No users found.
-        </div>
+    <div class="alert alert-secondary text-center">
+        <i class="fas fa-info-circle"></i> No users found.
+    </div>
     {% endif %}
 </div>
 
 {% block extra_js %}
 <script>
-function confirmDeleteUser(username) {
-    return confirm("Are you sure you want to permanently delete user '" + username + "'? This action cannot be undone.");
-}
+    function confirmDeleteUser(username) {
+        return confirm("Are you sure you want to permanently delete user '" + username + "'? This action cannot be undone.");
+    }
 </script>
 {% endblock %}
 {% endblock %}

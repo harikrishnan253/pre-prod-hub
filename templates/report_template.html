@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,25 +13,37 @@
             padding: 20px;
             color: #333;
         }
+
         .report-header {
             border-bottom: 2px solid #eee;
             padding-bottom: 10px;
             margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
+
+        .logo-image {
+            height: 60px;
+        }
+
         .report-title {
             color: #2c3e50;
             margin-bottom: 5px;
         }
+
         .report-meta {
             color: #7f8c8d;
             font-size: 0.9em;
         }
+
         .summary-section {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 15px;
             margin-bottom: 30px;
         }
+
         .summary-card {
             border: 1px solid #ddd;
             border-radius: 5px;
@@ -38,53 +51,64 @@
             text-align: center;
             background-color: #f9f9f9;
         }
+
         .summary-card h3 {
             margin-top: 0;
             color: #3498db;
             font-size: 1em;
         }
+
         .summary-value {
             font-size: 1.8em;
             font-weight: bold;
             color: #2c3e50;
         }
+
         .detail-section {
             margin-bottom: 30px;
         }
+
         .detail-section h3 {
             color: #3498db;
             border-bottom: 1px solid #eee;
             padding-bottom: 5px;
         }
+
         .issue-list {
             list-style-type: none;
             padding-left: 0;
         }
+
         .issue-list li {
             padding: 5px 0;
             border-bottom: 1px solid #f0f0f0;
         }
+
         .sequence-issue {
             background-color: #fff8e1;
             padding: 10px;
             margin-bottom: 10px;
             border-left: 4px solid #ffc107;
         }
+
         .no-issues {
             color: #7f8c8d;
             font-style: italic;
         }
     </style>
 </head>
+
 <body>
     <div class="report-header">
-        <a href="{{ url_for('index') }}">
-                <img src="{{ url_for('static', filename='images/S4c.png') }}" alt="Your Logo" class="logo-image">
-            </a>
-        <h1 class="report-title">Reference Validation Report</h1>
-        <div class="report-meta">
-            <p>File: {{ filename }}</p>
-            <p>Generated on: {{ datetime.now().strftime('%Y-%m-%d %H:%M:%S') }}</p>
+        <a href="{{ url_for('main.index') }}">
+            <img src="data:image/png;base64,{{ base64_logo }}" alt="S4C Logo" class="logo-image">
+        </a>
+        <div>
+            <h1 class="report-title">Reference Validation Report</h1>
+            <div class="report-meta">
+                <p>File: {{ filename }}</p>
+                <p>Generated on: {{ datetime.now().strftime('%Y-%m-%d %H:%M:%S') }}</p>
+            </div>
         </div>
     </div>
 
@@ -110,44 +134,45 @@
     <div class="detail-section">
         <h3>Missing References (Cited but not in bibliography)</h3>
         {% if results.missing_references %}
-            <ul class="issue-list">
-                {% for ref in results.missing_references %}
-                    <li>{{ ref }}</li>
-                {% endfor %}
-            </ul>
+        <ul class="issue-list">
+            {% for ref in results.missing_references %}
+            <li>{{ ref }}</li>
+            {% endfor %}
+        </ul>
         {% else %}
-            <p class="no-issues">No missing references found.</p>
+        <p class="no-issues">No missing references found.</p>
         {% endif %}
     </div>
 
     <div class="detail-section">
         <h3>Unused References (In bibliography but not cited)</h3>
         {% if results.unused_references %}
-            <ul class="issue-list">
-                {% for ref in results.unused_references %}
-                    <li>{{ ref }}</li>
-                {% endfor %}
-            </ul>
+        <ul class="issue-list">
+            {% for ref in results.unused_references %}
+            <li>{{ ref }}</li>
+            {% endfor %}
+        </ul>
         {% else %}
-            <p class="no-issues">No unused references found.</p>
+        <p class="no-issues">No unused references found.</p>
         {% endif %}
     </div>
 
-<div class="detail-section">
-    <h3>Citation Sequence</h3>
-    <p><strong>{{ results.sequence_message }}</strong></p>
+    <div class="detail-section">
+        <h3>Citation Sequence</h3>
+        <p><strong>{{ results.sequence_message }}</strong></p>
 
-    {% if results.sequence_issues %}
+        {% if results.sequence_issues %}
         {% for issue in results.sequence_issues %}
-            <div class="sequence-issue">
-                <p>Sequence error at position {{ issue.position }}:
-                   Citation {{ issue.current }} appears after {{ issue.previous }}</p>
-                <p>Full citation sequence: {{ issue.full_sequence|join(', ') }}</p>
-            </div>
+        <div class="sequence-issue">
+            <p>Sequence error at position {{ issue.position }}:
+                Citation {{ issue.current }} appears after {{ issue.previous }}</p>
+            <p>Full citation sequence: {{ issue.full_sequence|join(', ') }}</p>
+        </div>
         {% endfor %}
-    {% else %}
+        {% else %}
         <p>No citation sequence issues found.</p>
-    {% endif %}
-</div>
+        {% endif %}
+    </div>
 </body>
+
 </html>

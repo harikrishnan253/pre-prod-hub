@@ -204,8 +204,15 @@
     }
 
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .dashboard-header,
@@ -217,83 +224,7 @@
         animation-delay: 0.2s;
     }
 </style>
-{% endblock %}
-
-{% block content %}
-<div class="dashboard-header">
-    <h2>All Files <span class="admin-badge"><i class="fas fa-file-alt"></i> ADMIN</span></h2>
-    <a href="{{ url_for('admin_stats') }}" class="btn-rainbow">
-        <i class="fas fa-chart-bar"></i> View Statistics
-    </a>
-</div>
-
-<div class="file-table-container">
-    {% if files %}
-        <table class="file-table">
-            <thead>
-                <tr>
-                    <th>Filename</th>
-                    <th>User</th>
-                    <th>Upload Date</th>
-                    <th>References</th>
-                    <th>Citations</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for file in files %}
-                <tr>
-                    <td>{{ file.original_filename }}</td>
-                    <td>{{ file.username }}</td>
-                    <td>{{ file.upload_date }}</td>
-                    <td>{{ file.total_references if file.total_references is not none else 'N/A' }}</td>
-                    <td>{{ file.total_citations if file.total_citations is not none else 'N/A' }}</td>
-                    <td>
-                        {% if file.report_filename %}
-                        <a href="{{ url_for('download_report', filename=file.report_filename) }}" class="btn-small">
-                            <i class="fas fa-download"></i> Download
-                        </a>
-                        {% endif %}
-                        <form action="{{ url_for('admin_delete_file', file_id=file.id) }}"
-                              method="post"
-                              style="display:inline;"
-                              onsubmit="return confirm('Are you sure you want to delete this file? This cannot be undone.');">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn-delete">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        {% if total_pages > 1 %}
-        <div class="pagination">
-            {% if page > 1 %}
-                <a href="{{ url_for('admin_files', page=page-1) }}">&laquo; Previous</a>
-            {% else %}
-                <a class="disabled">&laquo; Previous</a>
-            {% endif %}
-
-            {% for p in range(1, total_pages + 1) %}
-                {% if p == page %}
-                    <a class="active">{{ p }}</a>
-                {% else %}
-                    <a href="{{ url_for('admin_files', page=p) }}">{{ p }}</a>
-                {% endif %}
-            {% endfor %}
-
-            {% if page < total_pages %}
-                <a href="{{ url_for('admin_files', page=page+1) }}">Next &raquo;</a>
-            {% else %}
-                <a class="disabled">Next &raquo;</a>
-            {% endif %}
-        </div>
-        {% endif %}
-    {% else %}
-        <p>No files available.</p>
-    {% endif %}
+<p>No files available.</p>
+{% endif %}
 </div>
 {% endblock %}

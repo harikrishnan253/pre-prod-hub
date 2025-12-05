@@ -1,5 +1,5 @@
 from flask import (
-    Flask, render_template, request, redirect, flash,
+    Flask, render_template, render_template_string, request, redirect, flash,
     send_file, url_for, jsonify, session, send_from_directory, g
 )
 import os
@@ -93,6 +93,7 @@ ROUTE_MACROS = {
             "Copyduplicate.duplicate4",
             "citationupdateonly.citationupdate",
             "Prediting.Preditinghighlight",
+            "msrpre.GenerateDashboardReport",
         ]
     },
     'ppd': {
@@ -110,7 +111,16 @@ ROUTE_MACROS = {
 
 # Flask app
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(24)
+# Use a stable secret key - don't regenerate on each restart
+SECRET_KEY_FILE = os.path.join(BASE_DIR, '.secret_key')
+if os.path.exists(SECRET_KEY_FILE):
+    with open(SECRET_KEY_FILE, 'rb') as f:
+        app.secret_key = f.read()
+else:
+    app.secret_key = os.urandom(24)
+    with open(SECRET_KEY_FILE, 'wb') as f:
+        f.write(app.secret_key)
+
 csrf = CSRFProtect(app)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -1016,10 +1026,163 @@ def technical():
 def macro_processing():
     return handle_macro_route('macro_processing', 'macro_processing.html')
 
-@app.route('/ppd', methods=['GET', 'POST'])
+from jinja2 import Template
+
+@app.route("/ppd", methods=["GET", "POST"])
+@csrf.exempt
 @role_required(ROUTE_PERMISSIONS.get('ppd', ['ADMIN']))
 def ppd():
-    return handle_macro_route('ppd', 'ppd.html')
+    if request.method == "GET":
+        return render_template("ppd.html")
+
+    uploaded = request.files.getlist("docfiles")
+    if not uploaded:
+        return jsonify({"error": "No files uploaded"}), 400
+
+    import tempfile, time, zipfile, threading
+    from pathlib import Path
+
+    tmpdir = tempfile.mkdtemp(prefix="s4c_ppd_")
+    saved = []
+    for f in uploaded:
+        fn = f.filename
+        if not fn.lower().endswith((".doc", ".docx")):
+            continue
+        path = os.path.join(tmpdir, fn)
+        f.save(path)
+        saved.append(path)
+
+    if not saved:
+        return jsonify({"error": "No valid .doc/.docx files uploaded"}), 400
+
+    # ✅ Capture username before thread (request/session will vanish later)
+    username = session.get("username") or "Analyst"
+
+    job_id = str(int(time.time() * 1000))
+    app.config.setdefault("PROGRESS_DATA", {})
+    app.config["PROGRESS_DATA"][job_id] = {"total": len(saved), "current": 0, "status": "Starting"}
+
+    def process_job(username):
+        """Background PPD processing thread"""
+        with app.app_context():
+            from word_analyzer import (
+                CitationAnalyzer,
+                extract_with_word,
+                extract_with_docx,
+                generate_formatting_html,
+                generate_multilingual_html,
+                build_comments_html,
+                build_export_highlight_html,
+                build_detailed_summary_table,
+                DASHBOARD_CSS,
+                DASHBOARD_JS,
+                HTML_WRAPPER,
+                HAS_WIN32COM,
+            )
+
+            results = []
+            for i, path in enumerate(saved, 1):
+                fname = os.path.basename(path)
+                app.config["PROGRESS_DATA"][job_id].update({
+                    "current": i,
+                    "status": f"Processing {fname}"
+                })
+                try:
+                    # --- Extract content ---
+                    if os.name == "nt" and HAS_WIN32COM:
+                        paras, comments, imgs, foot, end = extract_with_word(path)
+                    else:
+                        paras, comments, imgs, foot, end = extract_with_docx(path)
+
+                    CitationAnalyzer().remove_tags_keep_formatting_docx(path)
+                    analyzer = CitationAnalyzer()
+                    doc_data = [(t, p, c) for (t, p, c, _) in paras]
+                    dtypes = analyzer.analyze_document_citations(doc_data)
+                    table_count = len(dtypes.get("Table", {}).get("Caption", {}))
+                    fmt_html = generate_formatting_html(path, used_word=False)
+                    spec_html = generate_multilingual_html(path)
+                    com_html = build_comments_html(comments)
+                    summary_html = build_detailed_summary_table(
+                        dtypes, imgs, table_count, foot, end,
+                        fmt_html, spec_html, com_html
+                    )
+                    msr_html = analyzer.build_citation_tables_html(dtypes, fname)
+                    exp_html = build_export_highlight_html(paras)
+
+                    wc = sum(len(t.split()) for (t, _, _, _) in paras)
+
+                    # ✅ Render using plain Jinja2 (no Flask request context)
+                    template = Template(HTML_WRAPPER)
+                    html = template.render(
+                        doc_name=fname,
+                        pages=(len(paras) // 40) + 1,
+                        words=wc,
+                        ce_pages=(wc // 250) + 1,
+                        date=datetime.now().strftime("%d-%m-%Y"),
+                        analyst=username,
+                        detailed_summary=summary_html,
+                        msr_content=msr_html,
+                        fmt_content=fmt_html,
+                        spec_content=spec_html,
+                        comment_content=com_html,
+                        export_highlight=exp_html,
+                        images=imgs,
+                        footnotes=foot,
+                        endnotes=end,
+                        css=DASHBOARD_CSS,
+                        js=DASHBOARD_JS,
+                        logo_path="",
+                    )
+
+                    out_html = os.path.join(tmpdir, Path(path).stem + "_Dashboard.html")
+                    with open(out_html, "w", encoding="utf-8") as f:
+                        f.write(html)
+                    results.append(out_html)
+
+                    excel_output = html_to_excel_no_images(out_html, tmpdir)
+
+                    if excel_output:
+                        results.append(excel_output)
+                    else:
+                        log_errors([f"Excel conversion FAILED for {out_html}"])
+
+                except Exception as e:
+                    app.logger.error(f"Failed processing {fname}: {e}")
+                    app.config["PROGRESS_DATA"][job_id]["status"] = f"Failed: {e}"
+                    break
+
+            # --- Zip results ---
+            zip_path = os.path.join(tmpdir, "PPD_Results.zip")
+            with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
+                for f in results + saved:
+                    z.write(f, arcname=os.path.basename(f))
+            app.config["PROGRESS_DATA"][job_id].update({
+                "status": "Completed",
+                "zip_path": zip_path,
+                "current": len(saved)
+            })
+
+    threading.Thread(target=process_job, args=(username,), daemon=True).start()
+    return jsonify({"job_id": job_id})
+
+
+
+@app.route("/progress/<job_id>")
+def progress(job_id):
+    return jsonify(app.config.get("PROGRESS_DATA", {}).get(job_id, {}))
+
+
+@app.route("/download_zip/<job_id>")
+def download_zip(job_id):
+    data = app.config.get("PROGRESS_DATA", {}).get(job_id)
+    if not data or "zip_path" not in data:
+        return "Not ready", 404
+    return send_file(data["zip_path"], as_attachment=True, download_name="MSS_Review_Result.zip")
+
+
+
+
+
 # -----------------------
 # File Validation Route
 # -----------------------
@@ -1031,94 +1194,134 @@ def validate_file():
         return redirect(url_for('login'))
 
     if request.method == "POST":
-        # Check if it's an AJAX request
         is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
+        # Validate file field
         if 'files' not in request.files:
+            msg = "No files selected"
             if is_ajax:
-                return jsonify({"success": False, "message": "No files selected"})
-            flash("No files selected", "error")
+                return jsonify({"success": False, "message": msg})
+            flash(msg, "error")
             return redirect(request.url)
 
         uploaded_files = request.files.getlist('files')
-        if len(uploaded_files) == 0 or uploaded_files[0].filename == '':
+        if not uploaded_files or uploaded_files[0].filename.strip() == "":
+            msg = "No files selected"
             if is_ajax:
-                return jsonify({"success": False, "message": "No files selected"})
-            flash("No files selected", "error")
+                return jsonify({"success": False, "message": msg})
+            flash(msg, "error")
             return redirect(request.url)
 
         processed_files = []
-        errors = []
+        failed_files = []
 
         with db_pool.get_connection() as db:
+            cursor = db.cursor()
+
             for file in uploaded_files:
-                if file and allowed_file(file.filename):
-                    try:
-                        filename = secure_filename(file.filename)
-                        stored_filename = f"{session['user_id']}_{datetime.now().strftime('%Y%m%d%H%M%S%f')}_{filename}"
-                        filepath = os.path.join(app.config['UPLOAD_FOLDER'], stored_filename)
-                        file.save(filepath)
+                filename = secure_filename(file.filename)
+                if not file or not allowed_file(filename):
+                    failed_files.append({"filename": filename, "error": "Invalid file type"})
+                    continue
 
-                        with ReferenceValidator(filepath) as validator:
-                            results = validator.validate()
+                try:
+                    # Strip file extension (.docx, .doc, etc.)
+                    base_filename, ext = os.path.splitext(filename)
 
-                        report_name = f"report_{stored_filename}.html"
-                        report_path = os.path.join(REPORT_FOLDER, report_name)
-                        with open(report_path, 'w', encoding='utf-8') as f:
-                            f.write(render_template('report_template.html',
-                                                    filename=filename, results=results, datetime=datetime))
+                    # Use the base name for internal processing and reports
+                    stored_filename = base_filename
+                    filepath = os.path.join(app.config['UPLOAD_FOLDER'], stored_filename + ext)
 
-                        cursor = db.cursor()
-                        cursor.execute('''INSERT INTO files (user_id, original_filename, stored_filename, report_filename)
-                                          VALUES (?,?,?,?)''',
-                                       (session['user_id'], filename, stored_filename, report_name))
-                        file_id = cursor.lastrowid
-                        cursor.execute('''INSERT INTO validation_results
-                                          (file_id,total_references,total_citations,missing_references,unused_references,sequence_issues)
-                                          VALUES (?,?,?,?,?,?)''',
-                                       (file_id, results['total_references'], results['total_citations'],
-                                        json.dumps(list(results['missing_references'])),
-                                        json.dumps(list(results['unused_references'])),
-                                        json.dumps(results['sequence_issues'])))
-                        db.commit()
+                    # Save the file (with extension, to preserve original format)
+                    file.save(filepath)
 
-                        processed_files.append({
-                            'filename': filename,
-                            'report_url': url_for('download_report', filename=report_name)
-                        })
+                    # Validate this file individually
+                    with ReferenceValidator(filepath) as validator:
+                        results = validator.validate()
 
-                    except Exception as e:
-                        errors.append(f"Error processing {file.filename}: {str(e)}")
-                        app.logger.error(f"Error processing file {file.filename}: {str(e)}")
-                else:
-                    errors.append(f"Invalid file type for {file.filename}")
+                    # Generate report for this file (using base name)
+                    report_name = f"{base_filename}.html"
+                    report_path = os.path.join(REPORT_FOLDER, report_name)
 
-        # Handle response based on request type
+                    with open(report_path, 'w', encoding='utf-8') as f:
+                        f.write(render_template(
+                            'report_template.html',
+                            filename=base_filename,
+                            results=results,
+                            datetime=datetime,
+                            base64_logo=get_base64_logo()
+                        ))
+
+                    # -----------------------------
+                    # Save metadata and results to DB
+                    # -----------------------------
+                    cursor.execute('''INSERT INTO files 
+                                      (user_id, original_filename, stored_filename, report_filename)
+                                      VALUES (?,?,?,?)''',
+                                   (session['user_id'], filename, stored_filename, report_name))
+                    file_id = cursor.lastrowid
+
+                    cursor.execute('''INSERT INTO validation_results
+                                      (file_id, total_references, total_citations, missing_references, unused_references, sequence_issues)
+                                      VALUES (?,?,?,?,?,?)''',
+                                   (
+                                       file_id,
+                                       results['total_references'],
+                                       results['total_citations'],
+                                       json.dumps(list(results['missing_references'])),
+                                       json.dumps(list(results['unused_references'])),
+                                       json.dumps(results['sequence_issues'])
+                                   ))
+                    db.commit()
+
+                    processed_files.append({
+                        "filename": base_filename,
+                        "report_url": url_for("download_report", filename=report_name)
+                    })
+
+                except Exception as e:
+                    db.rollback()
+                    error_msg = f"Error processing {filename}: {str(e)}"
+                    failed_files.append({"filename": filename, "error": str(e)})
+                    app.logger.error(error_msg)
+                    log_errors([error_msg])
+
+        # -----------------------------
+        # Prepare AJAX or form response
+        # -----------------------------
         if is_ajax:
-            if errors:
-                return jsonify({
-                    "success": False,
-                    "message": f"Processed {len(processed_files)} files with {len(errors)} errors",
-                    "errors": errors,
-                    "processed_files": processed_files
-                })
-            else:
-                return jsonify({
-                    "success": True,
-                    "message": f"Successfully processed {len(processed_files)} files",
-                    "processed_files": processed_files
-                })
-        else:
-            # For regular form submission
-            if processed_files:
-                flash(f"Successfully processed {len(processed_files)} files", "success")
-            if errors:
-                for error in errors:
-                    flash(error, "error")
-            return redirect(url_for('dashboard'))
+            response = {
+                "success": len(failed_files) == 0,
+                "message": f"Processed {len(processed_files)} files, {len(failed_files)} failed",
+                "processed_count": len(processed_files),
+                "failed_count": len(failed_files),
+                "processed_files": processed_files,
+                "errors": failed_files
+            }
+            return jsonify(response)
+
+        # Non-AJAX (form) response
+        if processed_files:
+            flash(f"Successfully processed {len(processed_files)} files", "success")
+        if failed_files:
+            for err in failed_files:
+                flash(f"{err['filename']}: {err['error']}", "error")
+
+        return redirect(url_for('dashboard'))
 
     return render_template("upload.html")
 
+
+import base64
+
+def get_base64_logo():
+    logo_path = os.path.join(app.static_folder, "images", "S4c.png")
+    try:
+        with open(logo_path, "rb") as f:
+            return base64.b64encode(f.read()).decode("utf-8")
+    except Exception as e:
+        app.logger.warning(f"Logo not found or failed to load: {e}")
+        return ""
 
 # -----------------------
 # Dashboard
@@ -1310,7 +1513,7 @@ def file_history():
                        0 AS total_citations,
                        u.username,
                        'macro' AS type,
-                       '' AS route_type, 
+                       m.route_type AS route_type, 
                        m.token,
                        m.selected_tasks,
                        m.original_filenames,
@@ -1821,6 +2024,13 @@ def start_background_cleanup():
 # -----------------------
 # Error Handlers
 # -----------------------
+from flask_wtf.csrf import CSRFError
+
+@app.errorhandler(CSRFError)
+def handle_csrf_error(e):
+    app.logger.error(f'CSRF error: {e}')
+    return 'CSRF validation failed. Please try again.', 400
+
 @app.errorhandler(Exception)
 def handle_unexpected_error(error):
     app.logger.error(f'Unexpected error: {error}')
@@ -1858,6 +2068,49 @@ def initialize_optimized_app():
     if not validate_route_configuration():
         print("Warning: Route configuration validation failed")
 
+    # Register Blueprints - Import locally to avoid circular imports
+    try:
+        from routes.auth import auth_bp
+        app.register_blueprint(auth_bp)
+    except Exception as e:
+        print(f"Failed to register auth blueprint: {e}")
+        
+    try:
+        from routes.main import main_bp
+        app.register_blueprint(main_bp)
+    except Exception as e:
+        print(f"Failed to register main blueprint: {e}")
+        
+    try:
+        from routes.admin import admin_bp
+        app.register_blueprint(admin_bp)
+    except Exception as e:
+        print(f"Failed to register admin blueprint: {e}")
+        
+    try:
+        from routes.macros import macros_bp
+        app.register_blueprint(macros_bp)
+    except Exception as e:
+        print(f"Failed to register macros blueprint: {e}")
+        
+    try:
+        from routes.validation import validation_bp
+        app.register_blueprint(validation_bp)
+    except Exception as e:
+        print(f"Failed to register validation blueprint: {e}")
+        
+    try:
+        from routes.ppd import ppd_bp
+        app.register_blueprint(ppd_bp)
+    except Exception as e:
+        print(f"Failed to register ppd blueprint: {e}")
+        
+    try:
+        from routes.doi import doi_bp
+        app.register_blueprint(doi_bp)
+    except Exception as e:
+        print(f"Failed to register doi blueprint: {e}")
+
     # Initialize DB
     init_db()
 
@@ -1872,6 +2125,7 @@ def initialize_optimized_app():
 
     # populate PPD macros into route configuration on startup (safe guard in case module missing)
     try:
+        from routes import ppd
         if hasattr(ppd, 'macro_names') and isinstance(ppd.macro_names, (list, tuple)):
             ROUTE_MACROS['ppd']['macros'] = ppd.macro_names
     except Exception as e:
@@ -1897,7 +2151,7 @@ if __name__ == '__main__':
     host_ip = get_ip_address()
     print(f"Your IP address: {host_ip}")
 
-    port = 8081
+    port = 5001
 
     print(f"\nAccess URLs:")
     print(f"Local: http://localhost:{port}")

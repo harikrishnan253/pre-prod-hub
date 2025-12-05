@@ -5,14 +5,14 @@
 {% block extra_css %}
 <style>
     .hero-section {
-        min-height: 80vh;
+        min-height: 85vh;
         display: flex;
         align-items: center;
         background: linear-gradient(135deg,
-            rgba(255, 60, 172, 0.1) 0%,
-            rgba(120, 75, 160, 0.1) 25%,
-            rgba(43, 134, 197, 0.1) 50%,
-            rgba(76, 201, 240, 0.1) 100%);
+                rgba(255, 60, 172, 0.05) 0%,
+                rgba(120, 75, 160, 0.05) 25%,
+                rgba(43, 134, 197, 0.05) 50%,
+                rgba(76, 201, 240, 0.05) 100%);
         position: relative;
         overflow: hidden;
     }
@@ -20,246 +20,141 @@
     .hero-content {
         position: relative;
         z-index: 2;
-        text-align: center;
-        max-width: 800px;
+        max-width: 900px;
         margin: 0 auto;
     }
 
-    .hero-title {
-        font-size: 4rem;
-        font-weight: 800;
-        margin-bottom: 1.5rem;
-        background: linear-gradient(135deg,
-            var(--rainbow-1),
-            var(--rainbow-2),
-            var(--rainbow-3),
-            var(--rainbow-4));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-size: 300% 300%;
-        animation: gradientShift 8s ease infinite;
-    }
-
     .hero-subtitle {
-        font-size: 1.5rem;
-        color: var(--black);
+        font-size: 1.25rem;
+        color: #555;
         margin-bottom: 2.5rem;
         line-height: 1.6;
-    }
-
-    .hero-buttons {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        flex-wrap: wrap;
+        font-weight: 400;
     }
 
     .btn-hero {
-        padding: 1rem 2rem;
+        padding: 0.8rem 2rem;
         border-radius: 50px;
         font-weight: 600;
-        text-decoration: none;
         transition: all 0.3s ease;
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
+        border: none;
     }
 
     .btn-primary-hero {
-        background: linear-gradient(135deg,
-            var(--rainbow-1),
-            var(--rainbow-3));
+        background: linear-gradient(135deg, #4b9ce2, #6a7bd6);
         color: white;
-        box-shadow: 0 10px 30px rgba(255, 60, 172, 0.4);
+        box-shadow: 0 10px 25px rgba(75, 156, 226, 0.3);
     }
 
     .btn-primary-hero:hover {
         transform: translateY(-3px);
-        box-shadow: 0 15px 40px rgba(255, 60, 172, 0.6);
+        box-shadow: 0 15px 35px rgba(75, 156, 226, 0.4);
+        color: white;
     }
 
     .btn-secondary-hero {
-        background: rgba(255, 255, 255, 0.9);
-        color: var(--black);
-        border: 2px solid var(--rainbow-3);
-        backdrop-filter: blur(10px);
+        background: white;
+        color: #444;
+        border: 2px solid #e0e0e0;
     }
 
     .btn-secondary-hero:hover {
-        background: var(--rainbow-3);
-        color: white;
+        border-color: #4b9ce2;
+        color: #4b9ce2;
         transform: translateY(-3px);
     }
 
     .features-section {
-        padding: 5rem 0;
-        background: rgba(255, 255, 255, 0.5);
-    }
-
-    .features-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-        margin-top: 3rem;
+        padding: 6rem 0;
+        background: #fff;
     }
 
     .feature-card {
-        background: rgba(255, 255, 255, 0.9);
-        padding: 2rem;
+        background: #fff;
+        padding: 2.5rem;
         border-radius: 20px;
         text-align: center;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(0, 0, 0, 0.05);
         transition: all 0.3s ease;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        height: 100%;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
     }
 
     .feature-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        border-color: rgba(75, 156, 226, 0.2);
     }
 
     .feature-icon {
-        width: 80px;
-        height: 80px;
+        width: 70px;
+        height: 70px;
         margin: 0 auto 1.5rem;
-        background: linear-gradient(135deg,
-            var(--rainbow-1),
-            var(--rainbow-4));
-        border-radius: 50%;
+        background: linear-gradient(135deg, #e0f2fe, #f0f9ff);
+        border-radius: 20px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 2rem;
+        font-size: 1.75rem;
+        color: #0284c7;
+        transition: all 0.3s ease;
+    }
+
+    .feature-card:hover .feature-icon {
+        background: linear-gradient(135deg, #4b9ce2, #6a7bd6);
         color: white;
+        transform: rotateY(180deg);
     }
 
     .feature-title {
-        font-size: 1.5rem;
-        font-weight: 600;
+        font-size: 1.25rem;
+        font-weight: 700;
         margin-bottom: 1rem;
-        color: var(--black);
+        color: #1e293b;
     }
 
     .feature-description {
-        color: var(--black);
+        color: #64748b;
         line-height: 1.6;
+        font-size: 0.95rem;
     }
 
     .stats-section {
-        padding: 4rem 0;
-        background: linear-gradient(135deg,
-            var(--rainbow-1) 0%,
-            var(--rainbow-2) 50%,
-            var(--rainbow-3) 100%);
+        padding: 5rem 0;
+        background: linear-gradient(135deg, #0f172a, #1e293b);
         color: white;
-        text-align: center;
-    }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 2rem;
-        margin-top: 2rem;
-    }
-
-    .stat-item {
-        padding: 1.5rem;
-    }
-
-    .stat-number {
-        font-size: 3rem;
-        font-weight: 800;
-        margin-bottom: 0.5rem;
-    }
-
-    .stat-label {
-        font-size: 1.1rem;
-        opacity: 0.9;
+        opacity: 0.8;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 500;
     }
 
     .cta-section {
-        padding: 5rem 0;
+        padding: 6rem 0;
         text-align: center;
-        background: rgba(255, 255, 255, 0.8);
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
     }
 
-    .cta-content {
-        max-width: 600px;
-        margin: 0 auto;
+    @keyframes gradientShift {
+        0% {
+            background-position: 0% 50%;
+        }
+
+        50% {
+            background-position: 100% 50%;
+        }
+
+        100% {
+            background-position: 0% 50%;
+        }
     }
 
-    .cta-title {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 1.5rem;
-        color: var(--black);
-    }
-
-    .cta-text {
-        font-size: 1.2rem;
-        margin-bottom: 2.5rem;
-        color: var(--black);
-        line-height: 1.6;
-    }
-
-    /* Floating animation for hero elements */
-    @keyframes float {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-20px); }
-    }
-
-    .floating-element {
-        position: absolute;
-        border-radius: 50%;
-        background: linear-gradient(135deg,
-            rgba(255, 60, 172, 0.2),
-            rgba(76, 201, 240, 0.2));
-        animation: float 6s ease-in-out infinite;
-    }
-
-    .floating-element:nth-child(1) {
-        width: 100px;
-        height: 100px;
-        top: 20%;
-        left: 10%;
-        animation-delay: 0s;
-    }
-
-    .floating-element:nth-child(2) {
-        width: 150px;
-        height: 150px;
-        top: 60%;
-        right: 15%;
-        animation-delay: 2s;
-    }
-
-    .floating-element:nth-child(3) {
-        width: 80px;
-        height: 80px;
-        bottom: 20%;
-        left: 20%;
-        animation-delay: 4s;
-    }
-
-    /* Responsive design */
     @media (max-width: 768px) {
         .hero-title {
             font-size: 2.5rem;
-        }
-
-        .hero-subtitle {
-            font-size: 1.2rem;
-        }
-
-        .hero-buttons {
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .btn-hero {
-            width: 100%;
-            max-width: 250px;
         }
     }
 </style>
@@ -268,84 +163,78 @@
 {% block content %}
 <!-- Hero Section -->
 <section class="hero-section">
-    <div class="floating-element"></div>
-    <div class="floating-element"></div>
-    <div class="floating-element"></div>
-
-    <div class="container">
+    <div class="container text-center">
         <div class="hero-content">
+            <span class="badge bg-primary bg-opacity-10 text-primary mb-3 px-3 py-2 rounded-pill fw-semibold">v2.0 Now
+                Available</span>
             <h1 class="hero-title">Copy Editing System</h1>
-            <p class="hero-subtitle">
-                Streamline your document validation and editing process with our advanced tools.
-                Ensure accuracy, consistency, and professional quality in every document.
-            </p>
-
-            <div class="hero-buttons">
-                {% if session.get('user_id') %}
-                    <a href="{{ url_for('upload_file') }}" class="btn-hero btn-primary-hero">
-                        <i class="fas fa-upload"></i> Start Validating
-                    </a>
-                    <a href="{{ url_for('file_history') }}" class="btn-hero btn-secondary-hero">
-                        <i class="fas fa-history"></i> View History
-                    </a>
-                {% else %}
-                    <a href="{{ url_for('login') }}" class="btn-hero btn-primary-hero">
-                        <i class="fas fa-sign-in-alt"></i> Get Started
-                    </a>
-                    <a href="{{ url_for('register') }}" class="btn-hero btn-secondary-hero">
-                        <i class="fas fa-user-plus"></i> Create Account
-                    </a>
-                {% endif %}
-            </div>
+            <i class="fab fa-microsoft fa-2x"></i>
+            <i class="fab fa-google fa-2x"></i>
+            <i class="fab fa-dropbox fa-2x"></i>
+            <i class="fab fa-slack fa-2x"></i>
         </div>
+    </div>
+    </div>
     </div>
 </section>
 
 <!-- Features Section -->
 <section class="features-section">
     <div class="container">
-        <h2 class="section-title text-center">Powerful Features</h2>
-        <p class="section-subtitle text-center">Everything you need for professional document editing</p>
+        <div class="text-center mb-5">
+            <h2 class="fw-bold display-6 mb-3">Powerful Features</h2>
+            <p class="text-muted lead">Everything you need for professional document editing</p>
+        </div>
 
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-check-circle"></i>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3 class="feature-title">Document Validation</h3>
+                    <p class="feature-description">
+                        Validate references, citations, and ensure document consistency with our advanced validation
+                        system.
+                    </p>
                 </div>
-                <h3 class="feature-title">Document Validation</h3>
-                <p class="feature-description">
-                    Validate references, citations, and ensure document consistency with our advanced validation system.
-                </p>
             </div>
 
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-magic"></i>
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-magic"></i>
+                    </div>
+                    <h3 class="feature-title">Preediting Process</h3>
+                    <p class="feature-description">
+                        Advanced preediting tools including reference renumbering, duplicate detection, and citation
+                        updates.
+                    </p>
                 </div>
-                <h3 class="feature-title">Preediting Process</h3>
-                <p class="feature-description">
-                    Advanced preediting tools including reference renumbering, duplicate detection, and citation updates.
-                </p>
             </div>
 
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-language"></i>
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-language"></i>
+                    </div>
+                    <h3 class="feature-title">Language Editing</h3>
+                    <p class="feature-description">
+                        Comprehensive language editing with punctuation standardization and terminology highlighting.
+                    </p>
                 </div>
-                <h3 class="feature-title">Language Editing</h3>
-                <p class="feature-description">
-                    Comprehensive language editing with punctuation standardization and terminology highlighting.
-                </p>
             </div>
 
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-history"></i>
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <h3 class="feature-title">History Tracking</h3>
+                    <p class="feature-description">
+                        Keep track of all your processed documents with detailed history and download options.
+                    </p>
                 </div>
-                <h3 class="feature-title">History Tracking</h3>
-                <p class="feature-description">
-                    Keep track of all your processed documents with detailed history and download options.
-                </p>
             </div>
         </div>
     </div>
@@ -354,27 +243,30 @@
 <!-- Stats Section -->
 <section class="stats-section">
     <div class="container">
-        <h2 class="section-title">Why Choose Our System?</h2>
-
-        <div class="stats-grid">
-            <div class="stat-item">
-                <div class="stat-number">99.9%</div>
-                <div class="stat-label">Accuracy Rate</div>
+        <div class="row text-center g-4">
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-number">99.9%</div>
+                    <div class="stat-label">Accuracy Rate</div>
+                </div>
             </div>
-
-            <div class="stat-item">
-                <div class="stat-number">5000+</div>
-                <div class="stat-label">Documents Processed</div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-number">5k+</div>
+                    <div class="stat-label">Documents Processed</div>
+                </div>
             </div>
-
-            <div class="stat-item">
-                <div class="stat-number">24/7</div>
-                <div class="stat-label">Availability</div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Availability</div>
+                </div>
             </div>
-
-            <div class="stat-item">
-                <div class="stat-number">98%</div>
-                <div class="stat-label">User Satisfaction</div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-number">98%</div>
+                    <div class="stat-label">User Satisfaction</div>
+                </div>
             </div>
         </div>
     </div>
@@ -383,90 +275,57 @@
 <!-- CTA Section -->
 <section class="cta-section">
     <div class="container">
-        <div class="cta-content">
-            <h2 class="cta-title">Ready to Transform Your Editing Process?</h2>
-            <p class="cta-text">
-                Join thousands of professionals who trust our system for their document editing needs.
-                Get started today and experience the difference.
-            </p>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h2 class="fw-bold display-6 mb-4">Ready to Transform Your Editing Process?</h2>
 
-            {% if not session.get('user_id') %}
-                <a href="{{ url_for('register') }}" class="btn-hero btn-primary-hero">
-                    <i class="fas fa-rocket"></i> Start Your Free Trial
-                </a>
-            {% else %}
-                <a href="{{ url_for('upload_file') }}" class="btn-hero btn-primary-hero">
-                    <i class="fas fa-upload"></i> Upload Your First Document
-                </a>
-            {% endif %}
-        </div>
-    </div>
-</section>
-{% endblock %}
+                {% block extra_js %}
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        // Counter animation for stats
+                        const statNumbers = document.querySelectorAll('.stat-number');
+                        let counted = false;
 
-{% block extra_js %}
-<script>
-    // Additional animations and interactions
-    document.addEventListener('DOMContentLoaded', function() {
-        // Animate feature cards on scroll
-        const featureCards = document.querySelectorAll('.feature-card');
+                        function animateStats() {
+                            if (counted) return;
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, { threshold: 0.1 });
+                            statNumbers.forEach(stat => {
+                                const text = stat.textContent;
+                                const target = parseInt(text.replace(/[^0-9]/g, ''));
+                                const suffix = text.replace(/[0-9]/g, '');
 
-        featureCards.forEach(card => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(50px)';
-            card.style.transition = 'all 0.6s ease';
-            observer.observe(card);
-        });
+                                let count = 0;
+                                const duration = 2000;
+                                const increment = target / (duration / 16);
 
-        // Counter animation for stats
-        const statNumbers = document.querySelectorAll('.stat-number');
-        let counted = false;
+                                const updateCount = () => {
+                                    count += increment;
+                                    if (count < target) {
+                                        stat.textContent = Math.ceil(count) + suffix;
+                                        requestAnimationFrame(updateCount);
+                                    } else {
+                                        stat.textContent = target + suffix;
+                                    }
+                                };
 
-        function animateStats() {
-            if (counted) return;
+                                updateCount();
+                            });
 
-            statNumbers.forEach(stat => {
-                const target = parseInt(stat.textContent);
-                let count = 0;
-                const duration = 2000;
-                const increment = target / (duration / 16);
+                            counted = true;
+                        }
 
-                const updateCount = () => {
-                    count += increment;
-                    if (count < target) {
-                        stat.textContent = Math.ceil(count) + (stat.textContent.includes('%') ? '%' : '+');
-                        requestAnimationFrame(updateCount);
-                    } else {
-                        stat.textContent = target + (stat.textContent.includes('%') ? '%' : '+');
-                    }
-                };
+                        const statsSection = document.querySelector('.stats-section');
+                        const statsObserver = new IntersectionObserver((entries) => {
+                            entries.forEach(entry => {
+                                if (entry.isIntersecting) {
+                                    animateStats();
+                                }
+                            });
+                        }, { threshold: 0.5 });
 
-                updateCount();
-            });
-
-            counted = true;
-        }
-
-        // Observe stats section
-        const statsSection = document.querySelector('.stats-section');
-        const statsObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    animateStats();
-                }
-            });
-        }, { threshold: 0.5 });
-
-        statsObserver.observe(statsSection);
-    });
-</script>
-{% endblock %}
+                        if (statsSection) {
+                            statsObserver.observe(statsSection);
+                        }
+                    });
+                </script>
+                {% endblock %}

@@ -31,7 +31,8 @@
         border-collapse: collapse;
     }
 
-    .role-stats th, .role-stats td {
+    .role-stats th,
+    .role-stats td {
         padding: 12px;
         text-align: left;
     }
@@ -50,7 +51,7 @@
 {% block content %}
 <div class="dashboard-header">
     <h2>System Statistics <span class="admin-badge"><i class="fas fa-chart-bar"></i> ADMIN</span></h2>
-    <a href="{{ url_for('admin_files') }}" class="btn-rainbow">
+    <a href="{{ url_for('admin.admin_files') }}" class="btn-rainbow">
         <i class="fas fa-file-alt"></i> View Files
     </a>
 </div>
@@ -77,74 +78,74 @@
 <div class="role-stats">
     <h3>User Roles Breakdown</h3>
     {% if role_stats %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Role</th>
-                    <th>User Count</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for role, count in role_stats.items() %}
-                <tr>
-                    <td>{{ role }}</td>
-                    <td>{{ count }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <table>
+        <thead>
+            <tr>
+                <th>Role</th>
+                <th>User Count</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for role, count in role_stats.items() %}
+            <tr>
+                <td>{{ role }}</td>
+                <td>{{ count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
     {% else %}
-        <p>No role statistics available.</p>
+    <p>No role statistics available.</p>
     {% endif %}
 </div>
 
 <div class="recent-files">
     <h3>Recent Activity</h3>
     {% if recent_files %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Filename</th>
-                    <th>User</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for file in recent_files %}
-                <tr>
-                    <td>{{ file.upload_date }}</td>
-                    <td>{{ file.original_filename }}</td>
-                    <td>{{ file.username }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Filename</th>
+                <th>User</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for file in recent_files %}
+            <tr>
+                <td>{{ file.upload_date }}</td>
+                <td>{{ file.original_filename }}</td>
+                <td>{{ file.username }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
     {% else %}
-        <p>No recent activity.</p>
+    <p>No recent activity.</p>
     {% endif %}
 </div>
 
 <div class="user-activity">
     <h3>User Activity</h3>
     {% if user_stats %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Username</th>
-                    <th>Files Uploaded</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in user_stats %}
-                <tr>
-                    <td>{{ user.username }}</td>
-                    <td>{{ user.file_count }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Files Uploaded</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in user_stats %}
+            <tr>
+                <td>{{ user.username }}</td>
+                <td>{{ user.file_count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
     {% else %}
-        <p>No user activity.</p>
+    <p>No user activity.</p>
     {% endif %}
 </div>
 {% endblock %}

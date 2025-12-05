@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Macro Statistics - Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">Macro Processing Statistics</h2>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">Usage by Route</div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% for route, count in route_stats.items() %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ route|title }}
+                            <span class="badge bg-primary rounded-pill">{{ count }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">Errors by Route</div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% for route, count in error_stats.items() %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ route|title }}
+                            <span class="badge bg-danger rounded-pill">{{ count }}</span>
+                        </li>
+                        {% else %}
+                        <li class="list-group-item text-muted">No errors recorded</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Daily Usage</div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            {% for route in route_macros.keys() %}
+                            <th>{{ route_macros[route].name }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for date, stats in daily_stats.items() %}
+                        <tr>
+                            <td>{{ date }}</td>
+                            {% for route in route_macros.keys() %}
+                            <td>{{ stats.get(route, 0) }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
